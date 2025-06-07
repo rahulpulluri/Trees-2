@@ -1,3 +1,8 @@
+# Time Complexity : O(n), where n is the number of nodes in the tree
+# Space Complexity : O(n), for the hashmap and recursion stack in the worst case
+# Did this code successfully run on Leetcode : YES
+# Any problem you faced while coding this : No
+
 from typing import List, Optional
 
 # Definition for a binary tree node.
@@ -7,74 +12,54 @@ class TreeNode:
         self.left = left
         self.right = right
 
-    # For printing the tree in level-order
-    def __repr__(self):
-        result = []
-        queue = [self]
-        while any(queue):
-            node = queue.pop(0)
-            if node:
-                result.append(str(node.val))
-                queue.append(node.left)
-                queue.append(node.right)
-            else:
-                result.append("null")
-        # Trim trailing "null"s
-        while result and result[-1] == "null":
-            result.pop()
-        return "[" + ",".join(result) + "]"
-
 class Solution:
     def buildTree(self, inorder: List[int], postorder: List[int]) -> Optional[TreeNode]:
-        
-        indices = {}
 
+        
+        # Optimized Approach using hashmap to store inorder indices
+        indices = {}
+        
         for idx, val in enumerate(inorder):
             indices[val] = idx
 
-        self.post_idx = len(postorder) - 1
+        self.post_idx = len(postorder) - 1  # Start from last index of postorder
 
-        def dfs(l, r):
-            
+        def dfs(l: int, r: int) -> Optional[TreeNode]:
+            # Base case: invalid range
             if l > r:
                 return None
-            
+
+            # Pick the current root from postorder traversal
             root_val = postorder[self.post_idx]
             self.post_idx -= 1
+
+            # Create the root node
             root = TreeNode(root_val)
+
+            # Get the index of the root in inorder to split subtrees
             idx = indices[root_val]
 
-            
+            # Important: Build right subtree first since postorder goes Left → Right → Root
             root.right = dfs(idx + 1, r)
-            root.left = dfs(l,idx-1)
+            root.left = dfs(l, idx - 1)
 
             return root
 
+        return dfs(0, len(inorder) - 1)
 
-        return dfs(0, len(inorder)-1)
+# --------------------------------------------------------------------------
+        # Brute Force Approach
+        # Time: O(n^2) due to slicing and .index() calls
+        # Space: O(n^2) due to slicing and recursion stack
 
-        
-        
-        # Brute Force Recursive Approach
         # if not inorder or not postorder:
         #     return None
-
+        #
         # root_val = postorder[-1]
         # root = TreeNode(root_val)
-
-        # mid = inorder.index(root_val)
-
-        # # Recursive calls (with slicing, which is O(n) each)
-        # root.left = self.buildTree(inorder[:mid], postorder[:mid])
-        # root.right = self.buildTree(inorder[mid+1:], postorder[mid:-1])
-
+        # idx = inorder.index(root_val)
+        #
+        # root.left = self.buildTree(inorder[:idx], postorder[:idx])
+        # root.right = self.buildTree(inorder[idx+1:], postorder[idx:-1])
+        #
         # return root
-
-if __name__ == "__main__":
-    inorder = [9, 3, 15, 20, 7]
-    postorder = [9, 15, 7, 20, 3]
-
-    sol = Solution()
-    root = sol.buildTree(inorder, postorder)
-
-    print("Constructed Binary Tree:", root)
